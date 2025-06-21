@@ -103,3 +103,4 @@ dist/
 # Backup files
 *.bak
 *.backup 
+.vercel
