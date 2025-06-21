@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LanguageSelector from './LanguageSelector';
 import './DebateTopics.css';
 
 const DebateTopics = ({ currentUser, onLogout }) => {
@@ -10,6 +11,7 @@ const DebateTopics = ({ currentUser, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('trending');
   const [showFilters, setShowFilters] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   // Enhanced topic categories with metadata
   const categories = [
@@ -263,6 +265,13 @@ const DebateTopics = ({ currentUser, onLogout }) => {
         </div>
         <div className="header-right">
           <button 
+            className="language-btn"
+            onClick={() => setShowLanguageSelector(true)}
+            title="Change Language"
+          >
+            🌐
+          </button>
+          <button 
             className="filters-btn"
             onClick={() => setShowFilters(!showFilters)}
           >
@@ -482,6 +491,13 @@ const DebateTopics = ({ currentUser, onLogout }) => {
           ))
         )}
       </div>
+
+      {/* Language Selector Modal */}
+      {showLanguageSelector && (
+        <LanguageSelector 
+          onClose={() => setShowLanguageSelector(false)}
+        />
+      )}
     </div>
   );
 };

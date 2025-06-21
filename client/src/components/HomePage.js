@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import UserService from '../services/UserService';
+import LanguageSelector from './LanguageSelector';
 import './HomePage.css';
 import './AnonymousLogin.css';
 
@@ -12,6 +14,8 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
   const [existingUsers, setExistingUsers] = useState([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   // Generate random username suggestions
   const generateUsernameSuggestions = () => {
@@ -226,6 +230,13 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
           <nav className="nav">
             <a href="#features" className="nav-link">Features</a>
             <a href="#about" className="nav-link">About</a>
+            <button 
+              className="language-btn"
+              onClick={() => setShowLanguageSelector(true)}
+              title="Change Language"
+            >
+              🌐
+            </button>
             {currentUser ? (
               <div className="user-nav">
                 <span className="welcome-text">Welcome, {currentUser.username}!</span>
@@ -544,6 +555,13 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
           <p>&copy; 2024 Debatize. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Language Selector Modal */}
+      {showLanguageSelector && (
+        <LanguageSelector 
+          onClose={() => setShowLanguageSelector(false)}
+        />
+      )}
     </div>
   );
 };

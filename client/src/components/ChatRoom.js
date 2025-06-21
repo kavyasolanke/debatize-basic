@@ -9,6 +9,7 @@ import DebateAnalytics from './DebateAnalytics';
 import UserProfile from './UserProfile';
 import AIModerationAssistant from './AIModerationAssistant';
 import GamificationSystem from './GamificationSystem';
+import LanguageSelector from './LanguageSelector';
 import UserService from '../services/UserService';
 
 const VOTE_SYMBOLS = {
@@ -55,6 +56,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const [currentMessageForModeration, setCurrentMessageForModeration] = useState('');
   const [showGamification, setShowGamification] = useState(false);
   const [userStats, setUserStats] = useState(null);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   useEffect(() => {
     // Check if user has accepted rules
@@ -455,6 +457,13 @@ const ChatRoom = ({ currentUser, onLogout }) => {
           <button className="back-button" onClick={() => navigate('/topics')}>← Back to Topics</button>
           <div className="header-controls">
             <button 
+              className="language-btn"
+              onClick={() => setShowLanguageSelector(true)}
+              title="Change Language"
+            >
+              🌐
+            </button>
+            <button 
               className="analytics-toggle-btn"
               onClick={() => setShowAnalytics(!showAnalytics)}
               title="Toggle Analytics"
@@ -666,6 +675,13 @@ const ChatRoom = ({ currentUser, onLogout }) => {
         messages={messages}
         users={users}
       />
+
+      {/* Language Selector Modal */}
+      {showLanguageSelector && (
+        <LanguageSelector 
+          onClose={() => setShowLanguageSelector(false)}
+        />
+      )}
     </div>
   );
 };
