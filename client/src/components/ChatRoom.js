@@ -37,7 +37,8 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const [isJoined, setIsJoined] = useState(false);
-  const [showRules, setShowRules] = useState(true);
+  const [showRules, setShowRules] = useState(false);
+  const [rulesAccepted, setRulesAccepted] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
   const [swipeStart, setSwipeStart] = useState(null);
   const [swipeDistance, setSwipeDistance] = useState(0);
@@ -48,6 +49,16 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+
+  useEffect(() => {
+    // Check if user has accepted rules
+    const acceptedRules = localStorage.getItem('debatize_rules_accepted');
+    if (acceptedRules) {
+      setRulesAccepted(true);
+    } else {
+      setShowRules(true);
+    }
+  }, []);
 
   useEffect(() => {
     // Create socket connection
@@ -185,6 +196,12 @@ const ChatRoom = ({ currentUser, onLogout }) => {
 
   const handleAcceptRules = () => {
     setShowRules(false);
+    setRulesAccepted(true);
+    localStorage.setItem('debatize_rules_accepted', 'true');
+  };
+
+  const handleShowRules = () => {
+    setShowRules(true);
   };
 
   const handleSendMessage = (e) => {
@@ -372,7 +389,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
             </button>
             <button 
               className="rules-button" 
-              onClick={() => setShowRules(true)}
+              onClick={handleShowRules}
             >
               Rules
             </button>
