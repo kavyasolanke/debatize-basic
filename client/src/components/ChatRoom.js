@@ -7,6 +7,7 @@ import NotificationSystem from './NotificationSystem';
 import SearchFilter from './SearchFilter';
 import DebateAnalytics from './DebateAnalytics';
 import UserProfile from './UserProfile';
+import AIModerationAssistant from './AIModerationAssistant';
 import UserService from '../services/UserService';
 
 const VOTE_SYMBOLS = {
@@ -49,6 +50,8 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showAIModeration, setShowAIModeration] = useState(false);
+  const [currentMessageForModeration, setCurrentMessageForModeration] = useState('');
 
   useEffect(() => {
     // Check if user has accepted rules
@@ -338,6 +341,53 @@ const ChatRoom = ({ currentUser, onLogout }) => {
     }
   };
 
+  const handleAIModeration = () => {
+    setCurrentMessageForModeration(message);
+    setShowAIModeration(true);
+  };
+
+  const handleCloseAIModeration = () => {
+    setShowAIModeration(false);
+    setCurrentMessageForModeration('');
+  };
+
+  const handleModerationAction = (moderationAction) => {
+    console.log('Moderation action taken:', moderationAction);
+    
+    // Handle different moderation actions
+    switch (moderationAction.action) {
+      case 'warn':
+        // Send warning to user
+        if (socket) {
+          socket.emit('moderator_warning', {
+            user: currentUser.username,
+            text: 'Your message has been flagged for review. Please ensure your content follows community guidelines.'
+          });
+        }
+        break;
+      case 'flag':
+        // Flag message for review
+        console.log('Message flagged for review');
+        break;
+      case 'mute':
+        // Temporarily mute user
+        console.log('User temporarily muted');
+        break;
+      case 'approve':
+        // Message approved, send it
+        if (message.trim()) {
+          handleSendMessage({ preventDefault: () => {} });
+        }
+        break;
+      case 'edit':
+        // Suggest edit - could open an edit modal
+        console.log('Edit suggested for message');
+        break;
+      default:
+        break;
+    }
+  };
+
   if (showRules) {
     return (
       <div className="chat-container">
@@ -386,6 +436,14 @@ const ChatRoom = ({ currentUser, onLogout }) => {
               title="Toggle Analytics"
             >
               📊
+            </button>
+            <button 
+              className="ai-moderation-btn"
+              onClick={handleAIModeration}
+              title="AI Moderation Assistant"
+              disabled={!message.trim()}
+            >
+              🤖
             </button>
             <button 
               className="rules-button" 
@@ -556,6 +614,16 @@ const ChatRoom = ({ currentUser, onLogout }) => {
           </div>
         </form>
       </div>
+
+      {/* AI Moderation Assistant */}
+      <AIModerationAssistant
+        isOpen={showAIModeration}
+        onClose={handleCloseAIModeration}
+        currentMessage={currentMessageForModeration}
+        onModerate={handleModerationAction}
+        currentUser={currentUser}
+        roomContext={`${roomId}/${subtopicId}`}
+      />
     </div>
   );
 };
