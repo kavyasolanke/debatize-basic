@@ -49,6 +49,10 @@ io.on('connection', (socket) => {
     
     rooms.get(room).users.add(user);
     
+    // Emit user joined event for notifications
+    const userData = { id: socket.id, username: user, side };
+    socket.to(room).emit('userJoined', userData);
+    
     socket.emit('message', { text: `Welcome to the anonymous debate room!`, user: 'System', timestamp: new Date().toISOString() });
     socket.emit('roomHistory', rooms.get(room).messages);
     socket.to(room).emit('message', { text: `An anonymous participant has joined the debate`, user: 'System', timestamp: new Date().toISOString() });
@@ -86,6 +90,9 @@ io.on('connection', (socket) => {
     if (rooms.has(room)) {
       rooms.get(room).messages.push(messageData);
     }
+    
+    // Emit newMessage event for notifications (excluding sender)
+    socket.to(room).emit('newMessage', messageData);
     io.to(room).emit('message', messageData);
   });
 
@@ -104,6 +111,14 @@ io.on('connection', (socket) => {
           message.votes[user] = voteType;
         }
         
+        // Emit messageVoted event for notifications
+        const voteData = {
+          messageId,
+          voteType,
+          voterId: user,
+          messageUserId: message.user
+        };
+        io.to(roomName).emit('messageVoted', voteData);
         io.to(roomName).emit('updateVotes', message);
         break;
       }
@@ -112,6 +127,19 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected');
+    
+    // Find which room the user was in and emit userLeft event
+    for (const [roomName, roomData] of rooms.entries()) {
+      if (roomData.users.has(userSides.get(socket.id))) {
+        const user = userSides.get(socket.id);
+        if (user) {
+          roomData.users.delete(user);
+          const userData = { id: socket.id, username: user };
+          socket.to(roomName).emit('userLeft', userData);
+        }
+        break;
+      }
+    }
   });
 });
 

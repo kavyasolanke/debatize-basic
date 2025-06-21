@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import './ChatRoom.css';
 import ChatRulesPopup from './ChatRulesPopup';
+import NotificationSystem from './NotificationSystem';
 
 const VOTE_SYMBOLS = {
   upvote: '⬆️',
@@ -338,6 +339,7 @@ const ChatRoom = () => {
           <div className="anonymous-status">
             You are: <strong>{anonymousId}</strong>
           </div>
+          <NotificationSystem socket={socket} currentUserId={anonymousId} />
           <button className="back-button" onClick={() => navigate('/topics')}>← Back to Topics</button>
         </div>
       </div>
