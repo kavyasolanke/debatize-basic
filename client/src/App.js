@@ -4,7 +4,6 @@ import './App.css';
 import HomePage from './components/HomePage';
 import DebateTopics from './components/DebateTopics';
 import ChatRoom from './components/ChatRoom';
-import AnonymousLogin from './components/AnonymousLogin';
 import UserService from './services/UserService';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import OfflineIndicator from './components/OfflineIndicator';
@@ -63,18 +62,6 @@ function App() {
     );
   }
 
-  // If no user is logged in, show login screen
-  if (!currentUser) {
-    return (
-      <Router>
-        <AnonymousLogin 
-          onLogin={handleLogin}
-          onBack={() => window.history.back()}
-        />
-      </Router>
-    );
-  }
-
   return (
     <Router>
       <div className="App">
@@ -85,6 +72,7 @@ function App() {
             element={
               <HomePage 
                 currentUser={currentUser}
+                onLogin={handleLogin}
                 onLogout={handleLogout}
               />
             } 
@@ -92,19 +80,27 @@ function App() {
           <Route 
             path="/topics" 
             element={
-              <DebateTopics 
-                currentUser={currentUser}
-                onLogout={handleLogout}
-              />
+              currentUser ? (
+                <DebateTopics 
+                  currentUser={currentUser}
+                  onLogout={handleLogout}
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
             } 
           />
           <Route 
             path="/chat/:roomId/:subtopicId" 
             element={
-              <ChatRoom 
-                currentUser={currentUser}
-                onLogout={handleLogout}
-              />
+              currentUser ? (
+                <ChatRoom 
+                  currentUser={currentUser}
+                  onLogout={handleLogout}
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
             } 
           />
           <Route path="*" element={<Navigate to="/" replace />} />
