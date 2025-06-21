@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DebateTopics.css';
+import SearchFilter from './SearchFilter';
 
 const DebateTopics = () => {
   const navigate = useNavigate();
   const [activeTopic, setActiveTopic] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [filteredTopics, setFilteredTopics] = useState([]);
 
   useEffect(() => {
     setIsVisible(true);
@@ -86,6 +88,27 @@ const DebateTopics = () => {
     }
   ];
 
+  // Convert debate rooms to a format suitable for SearchFilter
+  const allTopics = debateRooms.flatMap(room => 
+    room.subtopics.map(subtopic => ({
+      id: `${room.id}-${subtopic.id}`,
+      title: subtopic.title,
+      description: room.description,
+      category: room.title,
+      icon: room.icon,
+      roomId: room.id,
+      subtopicId: subtopic.id
+    }))
+  );
+
+  useEffect(() => {
+    setFilteredTopics(allTopics);
+  }, []);
+
+  const handleFilterChange = (filtered) => {
+    setFilteredTopics(filtered);
+  };
+
   const handleSubtopicSelect = (roomId, subtopicId) => {
     navigate(`/chat/${roomId}/${subtopicId}`);
   };
@@ -97,32 +120,52 @@ const DebateTopics = () => {
         <p>Choose a topic and subtopic to join the discussion</p>
       </div>
       
+      <SearchFilter 
+        messages={allTopics}
+        onFilterChange={handleFilterChange}
+        placeholder="Search debate topics..."
+        showFilters={false}
+        showSort={true}
+      />
+      
       <div className="topics-grid">
-        {debateRooms.map((room, index) => (
-          <div 
-            key={room.id}
-            className={`topic-card ${isVisible ? 'fade-in' : ''}`}
-            style={{ animationDelay: `${index * 0.1}s` }}
-            onMouseEnter={() => setActiveTopic(room.id)}
-            onMouseLeave={() => setActiveTopic(null)}
-          >
-            <div className="topic-icon">{room.icon}</div>
-            <h2>{room.title}</h2>
-            <p>{room.description}</p>
-            
-            <div className="subtopics-container">
-              {room.subtopics.map((subtopic) => (
-                <button
-                  key={subtopic.id}
-                  className={`subtopic-button ${activeTopic === room.id ? 'active' : ''}`}
-                  onClick={() => handleSubtopicSelect(room.id, subtopic.id)}
-                >
-                  {subtopic.title}
-                </button>
-              ))}
+        {debateRooms.map((room, index) => {
+          // Filter subtopics based on search results
+          const visibleSubtopics = room.subtopics.filter(subtopic => 
+            filteredTopics.some(topic => 
+              topic.roomId === room.id && topic.subtopicId === subtopic.id
+            )
+          );
+
+          // Don't show room if no subtopics are visible
+          if (visibleSubtopics.length === 0) return null;
+
+          return (
+            <div 
+              key={room.id}
+              className={`topic-card ${isVisible ? 'fade-in' : ''}`}
+              style={{ animationDelay: `${index * 0.1}s` }}
+              onMouseEnter={() => setActiveTopic(room.id)}
+              onMouseLeave={() => setActiveTopic(null)}
+            >
+              <div className="topic-icon">{room.icon}</div>
+              <h2>{room.title}</h2>
+              <p>{room.description}</p>
+              
+              <div className="subtopics-container">
+                {visibleSubtopics.map((subtopic) => (
+                  <button
+                    key={subtopic.id}
+                    className={`subtopic-button ${activeTopic === room.id ? 'active' : ''}`}
+                    onClick={() => handleSubtopicSelect(room.id, subtopic.id)}
+                  >
+                    {subtopic.title}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -33,7 +33,7 @@ class PWAService {
   }
 
   showUpdatePrompt() {
-    if (confirm('A new version of Debatize is available! Would you like to update?')) {
+    if (window.confirm('A new version of Debatize is available! Would you like to update?')) {
       window.location.reload();
     }
   }

@@ -4,6 +4,7 @@ import io from 'socket.io-client';
 import './ChatRoom.css';
 import ChatRulesPopup from './ChatRulesPopup';
 import NotificationSystem from './NotificationSystem';
+import SearchFilter from './SearchFilter';
 
 const VOTE_SYMBOLS = {
   upvote: '⬆️',
@@ -39,6 +40,7 @@ const ChatRoom = () => {
   const [anonymousId, setAnonymousId] = useState('');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [filteredMessages, setFilteredMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -165,6 +167,11 @@ const ChatRoom = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Initialize filtered messages
+  useEffect(() => {
+    setFilteredMessages(messages);
   }, [messages]);
 
   // Focus input when joined
@@ -300,6 +307,10 @@ const ChatRoom = () => {
     };
   };
 
+  const handleFilterChange = (filtered) => {
+    setFilteredMessages(filtered);
+  };
+
   if (showRules) {
     return (
       <div className="chat-container">
@@ -357,6 +368,11 @@ const ChatRoom = () => {
         </div>
 
         <div className="messages-container">
+          <SearchFilter 
+            messages={messages}
+            onFilterChange={handleFilterChange}
+            placeholder="Search messages, users, or arguments..."
+          />
           <div className="opening-statement">
             <h3>Welcome to the Anonymous Debate</h3>
             <p>{OPENING_STATEMENTS[roomId] || "Welcome to the anonymous debate room! Please maintain civil discourse and respect different viewpoints."}</p>
@@ -365,7 +381,7 @@ const ChatRoom = () => {
           <div className="swipe-notice-container">
             <p className="swipe-notice">💡 <strong>Swipe right on any message to reply!</strong></p>
           </div>
-          {messages.map((msg, index) => {
+          {filteredMessages.map((msg, index) => {
             const voteCounts = getVoteCounts(msg);
             return (
               <div 
