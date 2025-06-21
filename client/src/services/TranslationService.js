@@ -171,7 +171,7 @@ const translations = {
     profile: 'Profil',
     logout: 'Déconnexion',
     login: 'Connexion',
-    username: 'Nom d'utilisateur',
+    username: 'Nom d\'utilisateur',
     password: 'Mot de passe',
     send: 'Envoyer',
     search: 'Rechercher',

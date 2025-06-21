@@ -1049,4 +1049,42 @@
 
 .NotificationSystem {
   /* Add any specific styles for the NotificationSystem component here */
+}
+
+.ai-debate-btn, .voice-btn, .templates-btn, .tournament-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.ai-debate-btn:hover, .voice-btn:hover, .templates-btn:hover, .tournament-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.ai-debate-btn {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+}
+
+.voice-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.templates-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.tournament-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 } 

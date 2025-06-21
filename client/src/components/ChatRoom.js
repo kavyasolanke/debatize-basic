@@ -10,6 +10,10 @@ import UserProfile from './UserProfile';
 import AIModerationAssistant from './AIModerationAssistant';
 import GamificationSystem from './GamificationSystem';
 import LanguageSelector from './LanguageSelector';
+import AIDebateAssistant from './AIDebateAssistant';
+import VoiceToText from './VoiceToText';
+import DebateTemplates from './DebateTemplates';
+import DebateTournament from './DebateTournament';
 import UserService from '../services/UserService';
 
 const VOTE_SYMBOLS = {
@@ -57,6 +61,12 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const [showGamification, setShowGamification] = useState(false);
   const [userStats, setUserStats] = useState(null);
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [showAIDebateAssistant, setShowAIDebateAssistant] = useState(false);
+  const [showVoiceToText, setShowVoiceToText] = useState(false);
+  const [showDebateTemplates, setShowDebateTemplates] = useState(false);
+  const [showDebateTournament, setShowDebateTournament] = useState(false);
+  const [currentMessageForAI, setCurrentMessageForAI] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   useEffect(() => {
     // Check if user has accepted rules
@@ -407,6 +417,25 @@ const ChatRoom = ({ currentUser, onLogout }) => {
     localStorage.setItem(`debatize_stats_${currentUser.username}`, JSON.stringify(updatedStats));
   };
 
+  const handleAIDebateAssistant = (message) => {
+    setCurrentMessageForAI(message);
+    setShowAIDebateAssistant(true);
+  };
+
+  const handleAIDebateAssistantSend = (enhancedMessage) => {
+    handleSendMessage(enhancedMessage);
+  };
+
+  const handleVoiceToTextSend = (transcribedText) => {
+    handleSendMessage(transcribedText);
+  };
+
+  const handleTemplateSelect = (template) => {
+    setSelectedTemplate(template);
+    // You could implement template-specific logic here
+    console.log('Selected template:', template);
+  };
+
   if (showRules) {
     return (
       <div className="chat-container">
@@ -457,6 +486,34 @@ const ChatRoom = ({ currentUser, onLogout }) => {
           <button className="back-button" onClick={() => navigate('/topics')}>← Back to Topics</button>
           <div className="header-controls">
             <button 
+              className="ai-debate-btn"
+              onClick={() => setShowAIDebateAssistant(true)}
+              title="AI Debate Assistant"
+            >
+              🤖
+            </button>
+            <button 
+              className="voice-btn"
+              onClick={() => setShowVoiceToText(true)}
+              title="Voice to Text"
+            >
+              🎤
+            </button>
+            <button 
+              className="templates-btn"
+              onClick={() => setShowDebateTemplates(true)}
+              title="Debate Templates"
+            >
+              📋
+            </button>
+            <button 
+              className="tournament-btn"
+              onClick={() => setShowDebateTournament(true)}
+              title="Debate Tournaments"
+            >
+              🏆
+            </button>
+            <button 
               className="language-btn"
               onClick={() => setShowLanguageSelector(true)}
               title="Change Language"
@@ -472,7 +529,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
             </button>
             <button 
               className="ai-moderation-btn"
-              onClick={handleAIModeration}
+              onClick={() => setShowAIModeration(!showAIModeration)}
               title="AI Moderation Assistant"
               disabled={!message.trim()}
             >
@@ -480,7 +537,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
             </button>
             <button 
               className="gamification-btn"
-              onClick={handleGamification}
+              onClick={() => setShowGamification(!showGamification)}
               title="Gamification Center"
             >
               🎮
@@ -654,6 +711,40 @@ const ChatRoom = ({ currentUser, onLogout }) => {
           </div>
         </form>
       </div>
+
+      {/* AI Features Modals */}
+      {showAIDebateAssistant && (
+        <AIDebateAssistant
+          currentMessage={currentMessageForAI}
+          debateContext={messages}
+          userSide={currentUser.side}
+          onClose={() => setShowAIDebateAssistant(false)}
+          onSendEnhancedMessage={handleAIDebateAssistantSend}
+          debateHistory={messages}
+        />
+      )}
+
+      {showVoiceToText && (
+        <VoiceToText
+          onTextReceived={handleVoiceToTextSend}
+          onClose={() => setShowVoiceToText(false)}
+          isOpen={showVoiceToText}
+        />
+      )}
+
+      {showDebateTemplates && (
+        <DebateTemplates
+          onClose={() => setShowDebateTemplates(false)}
+          onSelectTemplate={handleTemplateSelect}
+        />
+      )}
+
+      {showDebateTournament && (
+        <DebateTournament
+          onClose={() => setShowDebateTournament(false)}
+          currentUser={currentUser}
+        />
+      )}
 
       {/* AI Moderation Assistant */}
       <AIModerationAssistant
