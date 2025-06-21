@@ -224,6 +224,23 @@
   color: var(--text-primary);
 }
 
+.username.clickable {
+  cursor: pointer;
+  color: #667eea;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.username.clickable:hover {
+  color: #5a67d8;
+  text-decoration: underline;
+}
+
+.username.clickable:active {
+  transform: scale(0.98);
+}
+
 .own-message .username {
   color: #1a1a1a;
 }

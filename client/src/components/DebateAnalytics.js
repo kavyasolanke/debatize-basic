@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import './DebateAnalytics.css';
 
 const DebateAnalytics = ({ messages = [], users = [], currentUserId }) => {
@@ -119,16 +119,6 @@ const DebateAnalytics = ({ messages = [], users = [], currentUserId }) => {
       engagementRate: totalUsers > 0 ? Math.round((totalMessages / totalUsers) * 100) / 100 : 0
     };
   }, [messages, users, timeRange]);
-
-  const formatTimeRange = (range) => {
-    const labels = {
-      '1h': 'Last Hour',
-      '24h': 'Last 24 Hours',
-      '7d': 'Last 7 Days',
-      '30d': 'Last 30 Days'
-    };
-    return labels[range] || range;
-  };
 
   const getTopUsers = () => {
     return Object.entries(analytics.userActivity)

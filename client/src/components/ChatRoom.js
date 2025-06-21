@@ -5,9 +5,8 @@ import './ChatRoom.css';
 import ChatRulesPopup from './ChatRulesPopup';
 import NotificationSystem from './NotificationSystem';
 import SearchFilter from './SearchFilter';
-import PWAInstallPrompt from './PWAInstallPrompt';
-import OfflineIndicator from './OfflineIndicator';
 import DebateAnalytics from './DebateAnalytics';
+import UserProfile from './UserProfile';
 
 const VOTE_SYMBOLS = {
   upvote: '⬆️',
@@ -57,8 +56,8 @@ const ChatRoom = () => {
   const socketRef = useRef(null);
   const inputRef = useRef(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   useEffect(() => {
     // Generate anonymous ID when component mounts
@@ -317,6 +316,26 @@ const ChatRoom = () => {
     setFilteredMessages(filtered);
   };
 
+  const handleUserProfileClick = (userId) => {
+    setSelectedUserId(userId);
+    setShowUserProfile(true);
+  };
+
+  const handleCloseUserProfile = () => {
+    setShowUserProfile(false);
+    setSelectedUserId(null);
+  };
+
+  const handleUpdateProfile = (profileData) => {
+    // Emit profile update to server
+    if (socket) {
+      socket.emit('updateProfile', {
+        userId: anonymousId,
+        profileData
+      });
+    }
+  };
+
   if (showRules) {
     return (
       <div className="chat-container">
@@ -424,7 +443,11 @@ const ChatRoom = () => {
               >
                 <div className="message-header">
                   <div className="message-user-info">
-                    <span className="username">
+                    <span 
+                      className="username clickable"
+                      onClick={() => handleUserProfileClick(msg.user || msg.username)}
+                      title="Click to view profile"
+                    >
                       {msg.user || msg.username}
                     </span>
                     {msg.side && (
@@ -479,6 +502,18 @@ const ChatRoom = () => {
           <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      {showUserProfile && selectedUserId && (
+        <UserProfile
+          userId={selectedUserId}
+          messages={messages}
+          users={users}
+          currentUserId={anonymousId}
+          onClose={handleCloseUserProfile}
+          onUpdateProfile={handleUpdateProfile}
+        />
+      )}
 
       <div className="chat-input-container">
         <form onSubmit={handleSendMessage} className="message-input-form">
