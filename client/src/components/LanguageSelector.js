@@ -1,234 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from '../services/TranslationService';
 import './LanguageSelector.css';
 
-const LanguageSelector = ({ 
-  isOpen, 
-  onClose, 
-  currentLanguage, 
-  onLanguageChange,
-  translations 
-}) => {
+const LanguageSelector = ({ onClose }) => {
+  const { currentLanguage, changeLanguage, getAvailableLanguages, getLanguageInfo } = useTranslation();
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState(currentLanguage);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredLanguages, setFilteredLanguages] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('all');
 
-  // Supported languages with native names and flags
-  const languages = [
-    {
-      code: 'en',
-      name: 'English',
-      nativeName: 'English',
-      flag: '🇺🇸',
-      direction: 'ltr',
-      region: 'Global'
-    },
-    {
-      code: 'es',
-      name: 'Spanish',
-      nativeName: 'Español',
-      flag: '🇪🇸',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'fr',
-      name: 'French',
-      nativeName: 'Français',
-      flag: '🇫🇷',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'de',
-      name: 'German',
-      nativeName: 'Deutsch',
-      flag: '🇩🇪',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'it',
-      name: 'Italian',
-      nativeName: 'Italiano',
-      flag: '🇮🇹',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'pt',
-      name: 'Portuguese',
-      nativeName: 'Português',
-      flag: '🇵🇹',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'ru',
-      name: 'Russian',
-      nativeName: 'Русский',
-      flag: '🇷🇺',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'zh',
-      name: 'Chinese (Simplified)',
-      nativeName: '中文 (简体)',
-      flag: '🇨🇳',
-      direction: 'ltr',
-      region: 'Asia'
-    },
-    {
-      code: 'ja',
-      name: 'Japanese',
-      nativeName: '日本語',
-      flag: '🇯🇵',
-      direction: 'ltr',
-      region: 'Asia'
-    },
-    {
-      code: 'ko',
-      name: 'Korean',
-      nativeName: '한국어',
-      flag: '🇰🇷',
-      direction: 'ltr',
-      region: 'Asia'
-    },
-    {
-      code: 'ar',
-      name: 'Arabic',
-      nativeName: 'العربية',
-      flag: '🇸🇦',
-      direction: 'rtl',
-      region: 'Middle East'
-    },
-    {
-      code: 'hi',
-      name: 'Hindi',
-      nativeName: 'हिन्दी',
-      flag: '🇮🇳',
-      direction: 'ltr',
-      region: 'Asia'
-    },
-    {
-      code: 'tr',
-      name: 'Turkish',
-      nativeName: 'Türkçe',
-      flag: '🇹🇷',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'nl',
-      name: 'Dutch',
-      nativeName: 'Nederlands',
-      flag: '🇳🇱',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'pl',
-      name: 'Polish',
-      nativeName: 'Polski',
-      flag: '🇵🇱',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'sv',
-      name: 'Swedish',
-      nativeName: 'Svenska',
-      flag: '🇸🇪',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'da',
-      name: 'Danish',
-      nativeName: 'Dansk',
-      flag: '🇩🇰',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'no',
-      name: 'Norwegian',
-      nativeName: 'Norsk',
-      flag: '🇳🇴',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'fi',
-      name: 'Finnish',
-      nativeName: 'Suomi',
-      flag: '🇫🇮',
-      direction: 'ltr',
-      region: 'Europe'
-    },
-    {
-      code: 'he',
-      name: 'Hebrew',
-      nativeName: 'עברית',
-      flag: '🇮🇱',
-      direction: 'rtl',
-      region: 'Middle East'
+  const languages = getAvailableLanguages();
+  const languageInfo = getLanguageInfo();
+
+  // Filter languages based on search and active filter
+  const filteredLanguages = useMemo(() => {
+    let filtered = languages;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(lang => {
+        const info = languageInfo[lang];
+        return (
+          info.name.toLowerCase().includes(query) ||
+          info.nativeName.toLowerCase().includes(query) ||
+          lang.toLowerCase().includes(query)
+        );
+      });
     }
-  ];
 
-  // Group languages by region
-  const languagesByRegion = languages.reduce((acc, lang) => {
-    if (!acc[lang.region]) {
-      acc[lang.region] = [];
+    // Apply region filter
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(lang => {
+        const info = languageInfo[lang];
+        return info.region === activeFilter;
+      });
     }
-    acc[lang.region].push(lang);
-    return acc;
-  }, {});
 
-  // Filter languages based on search term
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredLanguages(languages);
-    } else {
-      const filtered = languages.filter(lang =>
-        lang.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lang.nativeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lang.code.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredLanguages(filtered);
-    }
-  }, [searchTerm]);
+    return filtered;
+  }, [languages, searchQuery, activeFilter, languageInfo]);
 
-  const handleLanguageSelect = (language) => {
-    setSelectedLanguage(language.code);
+  // Get unique regions for filter
+  const regions = useMemo(() => {
+    const uniqueRegions = [...new Set(languages.map(lang => languageInfo[lang]?.region).filter(Boolean))];
+    return uniqueRegions.sort();
+  }, [languages, languageInfo]);
+
+  const handleLanguageSelect = (languageCode) => {
+    setSelectedLanguage(languageCode);
   };
 
   const handleApplyLanguage = () => {
-    onLanguageChange(selectedLanguage);
+    if (selectedLanguage !== currentLanguage) {
+      changeLanguage(selectedLanguage);
+    }
     onClose();
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setSelectedLanguage(currentLanguage);
     onClose();
   };
 
-  const getCurrentLanguageInfo = () => {
-    return languages.find(lang => lang.code === selectedLanguage) || languages[0];
+  const getSelectedLanguageInfo = () => {
+    return languageInfo[selectedLanguage] || {};
   };
 
-  const currentLangInfo = getCurrentLanguageInfo();
-
-  if (!isOpen) return null;
-
   return (
-    <div className="language-selector-overlay" onClick={onClose}>
+    <div className="language-selector-overlay" onClick={handleClose}>
       <div className="language-selector-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <div className="language-selector-header">
-          <button className="close-language-btn" onClick={onClose}>
+          <button className="close-language-btn" onClick={handleClose}>
             ×
           </button>
-          <h2>🌍 Language Settings</h2>
+          <h2>Select Language</h2>
           <p>Choose your preferred language for Debatize</p>
         </div>
 
@@ -239,136 +84,89 @@ const LanguageSelector = ({
               <span className="search-icon">🔍</span>
               <input
                 type="text"
-                placeholder="Search languages..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
                 className="language-search-input"
+                placeholder="Search languages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Current Selection Preview */}
-          <div className="current-selection">
-            <h4>Current Selection</h4>
-            <div className="selected-language-card">
-              <div className="language-flag">{currentLangInfo.flag}</div>
-              <div className="language-info">
-                <div className="language-name">{currentLangInfo.name}</div>
-                <div className="language-native">{currentLangInfo.nativeName}</div>
-                <div className="language-direction">
-                  {currentLangInfo.direction === 'rtl' ? 'Right-to-Left' : 'Left-to-Right'}
+          {/* Region Filters */}
+          <div className="region-filters">
+            <button
+              className={`region-filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveFilter('all')}
+            >
+              🌍 All Regions
+            </button>
+            {regions.map(region => (
+              <button
+                key={region}
+                className={`region-filter-btn ${activeFilter === region ? 'active' : ''}`}
+                onClick={() => setActiveFilter(region)}
+              >
+                {getRegionIcon(region)} {region}
+              </button>
+            ))}
+          </div>
+
+          {/* Language Grid */}
+          <div className="language-grid">
+            {filteredLanguages.map(lang => {
+              const info = languageInfo[lang];
+              const isSelected = lang === selectedLanguage;
+              
+              return (
+                <div
+                  key={lang}
+                  className={`language-option ${isSelected ? 'selected' : ''}`}
+                  onClick={() => handleLanguageSelect(lang)}
+                >
+                  <div className="language-flag">{info?.flag || '🌐'}</div>
+                  <div className="language-info">
+                    <div className="language-name">{info?.name || lang}</div>
+                    <div className="language-native">{info?.nativeName || lang}</div>
+                    <div className="language-region">{info?.region || 'Unknown'}</div>
+                  </div>
+                  {isSelected && <div className="selected-indicator">✓</div>}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Selected Language Preview */}
+          {selectedLanguage && (
+            <div className="selected-language-preview">
+              <div className="selected-language-card">
+                <div className="selected-language-info">
+                  <div className="selected-language-flag">
+                    {getSelectedLanguageInfo().flag || '🌐'}
+                  </div>
+                  <div className="selected-language-details">
+                    <h3>{getSelectedLanguageInfo().name || selectedLanguage}</h3>
+                    <p>{getSelectedLanguageInfo().nativeName || selectedLanguage}</p>
+                    <div className="language-features">
+                      {getSelectedLanguageInfo().features?.map((feature, index) => (
+                        <span key={index} className="feature-tag">{feature}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="language-direction-indicator">
+                  {getSelectedLanguageInfo().direction === 'rtl' ? '←' : '→'}
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Language List */}
-          <div className="language-list-container">
-            <h4>Available Languages</h4>
-            
-            {searchTerm.trim() === '' ? (
-              // Grouped by region
-              Object.entries(languagesByRegion).map(([region, regionLanguages]) => (
-                <div key={region} className="language-region">
-                  <h5 className="region-title">{region}</h5>
-                  <div className="region-languages">
-                    {regionLanguages.map(language => (
-                      <div
-                        key={language.code}
-                        className={`language-option ${selectedLanguage === language.code ? 'selected' : ''}`}
-                        onClick={() => handleLanguageSelect(language)}
-                      >
-                        <div className="language-flag">{language.flag}</div>
-                        <div className="language-details">
-                          <div className="language-name">{language.name}</div>
-                          <div className="language-native">{language.nativeName}</div>
-                        </div>
-                        <div className="language-direction-indicator">
-                          {language.direction === 'rtl' ? 'RTL' : 'LTR'}
-                        </div>
-                        {selectedLanguage === language.code && (
-                          <div className="selection-check">✓</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))
-            ) : (
-              // Filtered results
-              <div className="filtered-languages">
-                {filteredLanguages.map(language => (
-                  <div
-                    key={language.code}
-                    className={`language-option ${selectedLanguage === language.code ? 'selected' : ''}`}
-                    onClick={() => handleLanguageSelect(language)}
-                  >
-                    <div className="language-flag">{language.flag}</div>
-                    <div className="language-details">
-                      <div className="language-name">{language.name}</div>
-                      <div className="language-native">{language.nativeName}</div>
-                      <div className="language-region">{language.region}</div>
-                    </div>
-                    <div className="language-direction-indicator">
-                      {language.direction === 'rtl' ? 'RTL' : 'LTR'}
-                    </div>
-                    {selectedLanguage === language.code && (
-                      <div className="selection-check">✓</div>
-                    )}
-                  </div>
-                ))}
-                {filteredLanguages.length === 0 && (
-                  <div className="no-results">
-                    <span className="no-results-icon">🔍</span>
-                    <p>No languages found matching "{searchTerm}"</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Language Features */}
-          <div className="language-features">
-            <h4>Language Features</h4>
-            <div className="features-grid">
-              <div className="feature-item">
-                <span className="feature-icon">🌐</span>
-                <div className="feature-info">
-                  <h5>Full Translation</h5>
-                  <p>Complete interface translation</p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">📱</span>
-                <div className="feature-info">
-                  <h5>Mobile Optimized</h5>
-                  <p>Responsive design for all languages</p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">🔤</span>
-                <div className="feature-info">
-                  <h5>RTL Support</h5>
-                  <p>Right-to-left language support</p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">💾</span>
-                <div className="feature-info">
-                  <h5>Auto-Save</h5>
-                  <p>Language preference saved automatically</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="language-actions">
-            <button className="cancel-btn" onClick={handleCancel}>
+            <button className="cancel-btn" onClick={handleClose}>
               Cancel
             </button>
             <button 
-              className="apply-btn" 
+              className="apply-btn"
               onClick={handleApplyLanguage}
               disabled={selectedLanguage === currentLanguage}
             >
@@ -379,6 +177,19 @@ const LanguageSelector = ({
       </div>
     </div>
   );
+};
+
+// Helper function to get region icons
+const getRegionIcon = (region) => {
+  const regionIcons = {
+    'Europe': '🇪🇺',
+    'Asia': '🌏',
+    'Americas': '🌎',
+    'Africa': '🌍',
+    'Oceania': '🌏',
+    'Middle East': '🌍'
+  };
+  return regionIcons[region] || '🌐';
 };
 
 export default LanguageSelector; 

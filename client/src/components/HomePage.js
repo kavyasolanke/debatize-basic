@@ -2,45 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserService from '../services/UserService';
 import LanguageSelector from './LanguageSelector';
+import { useTranslation } from '../services/TranslationService';
 import './HomePage.css';
 import './AnonymousLogin.css';
 
 const HomePage = ({ currentUser, onLogin, onLogout }) => {
   const navigate = useNavigate();
-  const [currentFeature, setCurrentFeature] = useState(0);
+  const { t } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
   const [username, setUsername] = useState('');
   const [isNewUser, setIsNewUser] = useState(true);
-  const [existingUsers, setExistingUsers] = useState([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
+  const [existingUsers, setExistingUsers] = useState([]);
+  const [currentFeature, setCurrentFeature] = useState(0);
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   // Generate random username suggestions
   const generateUsernameSuggestions = () => {
-    const adjectives = [
-      'Anonymous', 'Mysterious', 'Curious', 'Thoughtful', 'Wise', 'Creative', 
-      'Bold', 'Quiet', 'Friendly', 'Serious', 'Clever', 'Brave', 'Calm', 
-      'Eager', 'Gentle', 'Honest', 'Kind', 'Lively', 'Patient', 'Smart'
-    ];
-    const nouns = [
-      'Debater', 'Thinker', 'Observer', 'Speaker', 'Listener', 'Analyst', 
-      'Critic', 'Advocate', 'Scholar', 'Citizen', 'Philosopher', 'Sage', 
-      'Mentor', 'Student', 'Teacher', 'Explorer', 'Visionary', 'Pioneer'
-    ];
-    
+    const prefixes = ['Debate', 'Logic', 'Thinker', 'Analyst', 'Scholar', 'Expert', 'Voice', 'Mind'];
+    const suffixes = ['Pro', 'Elite', 'Master', 'Guru', 'Wizard', 'Genius', 'Sage', 'Oracle'];
     const suggestions = [];
-    for (let i = 0; i < 3; i++) {
-      const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-      const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    
+    for (let i = 0; i < 8; i++) {
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
       const number = Math.floor(Math.random() * 999) + 1;
-      suggestions.push(`${adjective}${noun}${number}`);
+      suggestions.push(`${prefix}${suffix}${number}`);
     }
+    
     return suggestions;
   };
 
-  const [suggestions] = useState(generateUsernameSuggestions());
+  const suggestions = generateUsernameSuggestions();
 
   useEffect(() => {
     // Load existing users from localStorage
@@ -50,16 +44,16 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
 
   const validateUsername = (username) => {
     if (username.length < 3) {
-      return 'Username must be at least 3 characters long';
+      return t('validation.usernameMinLength');
     }
     if (username.length > 20) {
-      return 'Username must be less than 20 characters';
+      return t('validation.usernameMaxLength');
     }
     if (!/^[a-zA-Z0-9]+$/.test(username)) {
-      return 'Username can only contain letters and numbers';
+      return t('validation.usernameAlphanumeric');
     }
     if (existingUsers.some(user => user.username === username)) {
-      return 'Username already taken';
+      return t('validation.usernameTaken');
     }
     return null;
   };
@@ -86,7 +80,7 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
     e.preventDefault();
     
     if (!username.trim()) {
-      setError('Please enter a username');
+      setError(t('validation.enterUsername'));
       return;
     }
 
@@ -100,7 +94,7 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
       // Check if user exists
       const userExists = existingUsers.some(user => user.username === username);
       if (!userExists) {
-        setError('User not found. Please check your username or create a new account.');
+        setError(t('validation.userNotFound'));
         return;
       }
     }
@@ -155,7 +149,7 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
       setUsername('');
       setError('');
     } catch (error) {
-      setError('An error occurred. Please try again.');
+      setError(t('validation.generalError'));
     } finally {
       setIsLoading(false);
     }
@@ -169,26 +163,26 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
 
   const features = [
     {
-      title: "Structured Debates",
-      description: "Transform chaotic discussions into organized, evidence-based debates with clear arguments and counterpoints.",
+      title: t('features.structuredDebates.title'),
+      description: t('features.structuredDebates.description'),
       icon: "🎯",
       gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
     },
     {
-      title: "Decision Intelligence",
-      description: "Leverage AI-powered analysis to extract insights and identify the strongest arguments from every discussion.",
+      title: t('features.decisionIntelligence.title'),
+      description: t('features.decisionIntelligence.description'),
       icon: "🧠",
       gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
     },
     {
-      title: "Verified Voices",
-      description: "Connect with experts and verified contributors who bring credibility and depth to every debate topic.",
+      title: t('features.verifiedVoices.title'),
+      description: t('features.verifiedVoices.description'),
       icon: "✅",
       gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
     },
     {
-      title: "Real Impact",
-      description: "Drive awareness, clarity, and actionable insights that lead to better decisions and meaningful change.",
+      title: t('features.realImpact.title'),
+      description: t('features.realImpact.description'),
       icon: "🚀",
       gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
     }
@@ -203,10 +197,10 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
   }, [features.length]);
 
   const stats = [
-    { number: '40%', label: 'Better Decisions' },
-    { number: '10K+', label: 'Structured Debates' },
-    { number: '95%', label: 'Evidence-Based' },
-    { number: '24/7', label: 'AI-Powered Analysis' }
+    { number: '40%', label: t('stats.betterDecisions') },
+    { number: '10K+', label: t('stats.structuredDebates') },
+    { number: '95%', label: t('stats.evidenceBased') },
+    { number: '24/7', label: t('stats.aiPoweredAnalysis') }
   ];
 
   return (
@@ -228,29 +222,29 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
             <h1 className="logo-text-fallback" style={{ display: 'none' }}>Debatize</h1>
           </div>
           <nav className="nav">
-            <a href="#features" className="nav-link">Features</a>
-            <a href="#about" className="nav-link">About</a>
+            <a href="#features" className="nav-link">{t('nav.features')}</a>
+            <a href="#about" className="nav-link">{t('nav.about')}</a>
             <button 
               className="language-btn"
               onClick={() => setShowLanguageSelector(true)}
-              title="Change Language"
+              title={t('nav.changeLanguage')}
             >
               🌐
             </button>
             {currentUser ? (
               <div className="user-nav">
-                <span className="welcome-text">Welcome, {currentUser.username}!</span>
+                <span className="welcome-text">{t('nav.welcome', { username: currentUser.username })}</span>
                 <button 
                   className="cta-button"
                   onClick={() => navigate('/topics')}
                 >
-                  Start Debating
+                  {t('nav.startDebating')}
                 </button>
                 <button 
                   className="logout-button"
                   onClick={onLogout}
                 >
-                  Logout
+                  {t('nav.logout')}
                 </button>
               </div>
             ) : (
@@ -258,7 +252,7 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
                 className="cta-button"
                 onClick={() => setShowLogin(true)}
               >
-                Get Started
+                {t('nav.getStarted')}
               </button>
             )}
           </nav>
@@ -270,12 +264,11 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
         <div className="hero-content">
           <div className="hero-text">
             <h1 className="hero-title">
-              Where Logic 
-              <span className="highlight"> Meets Impact</span>
+              {t('hero.title.prefix')} 
+              <span className="highlight">{t('hero.title.highlight')}</span>
             </h1>
             <p className="hero-subtitle">
-              Transform chaotic discussions into structured, evidence-based debates. 
-              Drive awareness, clarity, and actionable insights through meaningful dialogue.
+              {t('hero.subtitle')}
             </p>
             {currentUser ? (
               <div className="hero-buttons">
@@ -283,11 +276,11 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
                   className="primary-button"
                   onClick={() => navigate('/topics')}
                 >
-                  <span className="button-text">Explore Topics</span>
+                  <span className="button-text">{t('hero.exploreTopics')}</span>
                   <span className="button-icon">→</span>
                 </button>
                 <button className="secondary-button">
-                  <span className="button-text">Learn More</span>
+                  <span className="button-text">{t('hero.learnMore')}</span>
                   <span className="button-icon">↓</span>
                 </button>
               </div>
@@ -297,11 +290,11 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
                   className="primary-button"
                   onClick={() => setShowLogin(true)}
                 >
-                  <span className="button-text">Join the Debate</span>
+                  <span className="button-text">{t('hero.joinDebate')}</span>
                   <span className="button-icon">→</span>
                 </button>
                 <button className="secondary-button">
-                  <span className="button-text">Learn More</span>
+                  <span className="button-text">{t('hero.learnMore')}</span>
                   <span className="button-icon">↓</span>
                 </button>
               </div>
@@ -337,7 +330,7 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
           </div>
         </div>
         <div className="hero-scroll-indicator">
-          <span>Scroll to explore</span>
+          <span>{t('hero.scrollToExplore')}</span>
           <div className="scroll-arrow">↓</div>
         </div>
       </section>
@@ -351,21 +344,21 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
                 <button className="close-btn" onClick={() => setShowLogin(false)}>
                   ×
                 </button>
-                <h2>Welcome to Debatize</h2>
-                <p>Choose your anonymous identity</p>
+                <h2>{t('login.welcome')}</h2>
+                <p>{t('login.chooseIdentity')}</p>
               </div>
 
               <form onSubmit={handleLoginSubmit} className="login-form">
                 <div className="form-group">
                   <label htmlFor="username">
-                    {isNewUser ? 'Choose Your Username' : 'Enter Your Username'}
+                    {isNewUser ? t('login.chooseUsername') : t('login.enterUsername')}
                   </label>
                   <input
                     type="text"
                     id="username"
                     value={username}
                     onChange={handleUsernameChange}
-                    placeholder={isNewUser ? "Enter username..." : "Enter existing username..."}
+                    placeholder={isNewUser ? t('login.usernamePlaceholder') : t('login.existingUsernamePlaceholder')}
                     className={error ? 'error' : ''}
                     disabled={isLoading}
                     autoFocus
@@ -375,7 +368,7 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
 
                 {isNewUser && (
                   <div className="suggestions-section">
-                    <p>Or choose from suggestions:</p>
+                    <p>{t('login.orChooseSuggestions')}</p>
                     <div className="suggestions-grid">
                       {suggestions.map((suggestion, index) => (
                         <button
@@ -398,25 +391,25 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
                   disabled={isLoading || !username.trim() || (isNewUser && error)}
                 >
                   {isLoading ? (
-                    <span className="loading">Loading...</span>
+                    <span className="loading">{t('login.loading')}</span>
                   ) : (
-                    <span>{isNewUser ? 'Create Account' : 'Login'}</span>
+                    <span>{isNewUser ? t('login.createAccount') : t('login.login')}</span>
                   )}
                 </button>
               </form>
 
               <div className="login-footer">
                 <p>
-                  {isNewUser ? 'Already have an account?' : "Don't have an account?"}
-                  <button 
-                    type="button" 
-                    className="switch-mode-btn"
-                    onClick={handleSwitchMode}
-                    disabled={isLoading}
-                  >
-                    {isNewUser ? 'Login' : 'Create New Account'}
-                  </button>
+                  {isNewUser ? t('login.alreadyHaveAccount') : t('login.dontHaveAccount')}
                 </p>
+                <button 
+                  type="button" 
+                  className="switch-mode-btn"
+                  onClick={handleSwitchMode}
+                  disabled={isLoading}
+                >
+                  {isNewUser ? t('login.switchToLogin') : t('login.switchToSignup')}
+                </button>
               </div>
 
               {existingUsers.length > 0 && (
@@ -460,8 +453,8 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
       {/* Features Section */}
       <section id="features" className="features-section">
         <div className="section-header">
-          <h2>Why Choose Debatize?</h2>
-          <p>Experience the future of online discussions</p>
+          <h2>{t('features.title')}</h2>
+          <p>{t('features.subtitle')}</p>
         </div>
         
         <div className="features-showcase">
@@ -495,13 +488,13 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
       {/* CTA Section */}
       <section className="cta-section">
         <div className="cta-content">
-          <h2>Ready to Transform Discussions?</h2>
-          <p>Join thousands of users making better decisions through structured, evidence-based debates</p>
+          <h2>{t('cta.title')}</h2>
+          <p>{t('cta.subtitle')}</p>
           <button 
             className="cta-button-large"
             onClick={() => navigate('/topics')}
           >
-            Start Structured Debating
+            {t('cta.button')}
           </button>
         </div>
       </section>
@@ -523,36 +516,42 @@ const HomePage = ({ currentUser, onLogin, onLogout }) => {
               />
               <h3 className="footer-logo-text-fallback" style={{ display: 'none' }}>Debatize</h3>
             </div>
-            <p>Transforming discussions into structured, evidence-based debates that drive better decisions and real impact.</p>
+            <p>{t('footer.about.description')}</p>
           </div>
           <div className="footer-section">
-            <h4>Features</h4>
+            <h4>{t('footer.features')}</h4>
             <ul>
               <li>Structured Debates</li>
-              <li>Decision Intelligence</li>
-              <li>Verified Voices</li>
-              <li>AI-Powered Analysis</li>
+              <li>AI Moderation</li>
+              <li>Real-time Analytics</li>
+              <li>Anonymous Discussions</li>
             </ul>
           </div>
           <div className="footer-section">
-            <h4>Legal</h4>
+            <h4>{t('footer.resources')}</h4>
             <ul>
-              <li>Privacy Policy</li>
-              <li>Terms of Service</li>
-              <li>Community Guidelines</li>
+              <li>Debate Guidelines</li>
+              <li>Community Rules</li>
+              <li>Help Center</li>
+              <li>API Documentation</li>
             </ul>
           </div>
           <div className="footer-section">
-            <h4>Connect</h4>
-            <div className="social-links">
-              <button className="social-button">Twitter</button>
-              <button className="social-button">LinkedIn</button>
-              <button className="social-button">GitHub</button>
-            </div>
+            <h4>{t('footer.support')}</h4>
+            <ul>
+              <li>{t('footer.contact')}</li>
+              <li>Report Issues</li>
+              <li>Feature Requests</li>
+              <li>Feedback</li>
+            </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2024 Debatize. All rights reserved.</p>
+          <div className="footer-links">
+            <a href="#">{t('footer.privacy')}</a>
+            <a href="#">{t('footer.terms')}</a>
+          </div>
+          <p>{t('footer.copyright')}</p>
         </div>
       </footer>
 
