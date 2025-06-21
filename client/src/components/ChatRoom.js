@@ -407,4 +407,65 @@ const ChatRoom = () => {
                     <span className="vote-count">{voteCounts.upvotes}</span>
                   </button>
                   <div className="vote-total">
-                    <span className={`total-score ${voteCounts.total > 0 ? 'positive' : voteCounts.total < 0 ? 'negative' : 'neutral'}`
+                    <span className={`total-score ${voteCounts.total > 0 ? 'positive' : voteCounts.total < 0 ? 'negative' : 'neutral'}`}>
+                      {voteCounts.total > 0 ? '+' : ''}{voteCounts.total}
+                    </span>
+                  </div>
+                  <button 
+                    className={`vote-button downvote ${getVoteStatus(msg) === 'downvote' ? 'active' : ''}`}
+                    onClick={() => handleVote(msg.id, 'downvote')}
+                    title="Downvote this argument"
+                  >
+                    <span className="vote-icon">{VOTE_SYMBOLS.downvote}</span>
+                    <span className="vote-count">{voteCounts.downvotes}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {typingUsers.length > 0 && (
+            <div className="typing-indicator">
+              {typingUsers.filter(user => user !== anonymousId).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      <div className="chat-input-container">
+        <form onSubmit={handleSendMessage} className="message-input-form">
+          {replyingTo && (
+            <div className="replying-to-banner">
+              <span>Replying to <strong>{replyingTo.user}</strong>: "{replyingTo.text.substring(0, 50)}{replyingTo.text.length > 50 ? '...' : ''}"</span>
+              <button type="button" onClick={cancelReply} className="cancel-reply-btn">&times;</button>
+            </div>
+          )}
+          <div className="input-wrapper">
+            <input
+              ref={inputRef}
+              type="text"
+              className="message-input"
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                handleTyping();
+              }}
+              placeholder="Type your argument..."
+              disabled={!isJoined}
+              maxLength={500}
+            />
+            <div className="input-actions">
+              <span className="char-count">{message.length}/500</span>
+              <button type="submit" className="send-button" disabled={!isJoined || !message.trim()}>
+                <span className="send-icon">📤</span>
+                Send
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ChatRoom;
