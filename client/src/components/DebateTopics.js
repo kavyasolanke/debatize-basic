@@ -103,7 +103,7 @@ const DebateTopics = () => {
 
   useEffect(() => {
     setFilteredTopics(allTopics);
-  }, []);
+  }, [allTopics]);
 
   const handleFilterChange = (filtered) => {
     setFilteredTopics(filtered);

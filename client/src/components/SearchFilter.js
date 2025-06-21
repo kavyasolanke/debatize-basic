@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './SearchFilter.css';
 
 const SearchFilter = ({ 
@@ -27,13 +27,25 @@ const SearchFilter = ({
   // Get unique sides from messages
   const uniqueSides = [...new Set(messages.map(msg => msg.side).filter(Boolean))];
 
-  useEffect(() => {
-    const filtered = filterMessages();
-    setFilteredResults(filtered);
-    onFilterChange(filtered);
-  }, [searchTerm, selectedFilters, sortBy, sortOrder, messages]);
+  const getVoteCounts = useCallback((message) => {
+    if (!message.votes) return { upvotes: 0, downvotes: 0, total: 0 };
+    
+    let upvotes = 0;
+    let downvotes = 0;
+    
+    Object.values(message.votes).forEach(vote => {
+      if (vote === 'upvote') upvotes++;
+      else if (vote === 'downvote') downvotes++;
+    });
+    
+    return {
+      upvotes,
+      downvotes,
+      total: upvotes - downvotes
+    };
+  }, []);
 
-  const filterMessages = () => {
+  const filterMessages = useCallback(() => {
     let filtered = [...messages];
 
     // Search filter
@@ -133,25 +145,13 @@ const SearchFilter = ({
     });
 
     return filtered;
-  };
+  }, [messages, searchTerm, selectedFilters, sortBy, sortOrder, getVoteCounts]);
 
-  const getVoteCounts = (message) => {
-    if (!message.votes) return { upvotes: 0, downvotes: 0, total: 0 };
-    
-    let upvotes = 0;
-    let downvotes = 0;
-    
-    Object.values(message.votes).forEach(vote => {
-      if (vote === 'upvote') upvotes++;
-      else if (vote === 'downvote') downvotes++;
-    });
-    
-    return {
-      upvotes,
-      downvotes,
-      total: upvotes - downvotes
-    };
-  };
+  useEffect(() => {
+    const filtered = filterMessages();
+    setFilteredResults(filtered);
+    onFilterChange(filtered);
+  }, [filterMessages, onFilterChange]);
 
   const clearFilters = () => {
     setSearchTerm('');

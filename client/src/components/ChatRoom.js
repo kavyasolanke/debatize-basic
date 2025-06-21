@@ -5,6 +5,9 @@ import './ChatRoom.css';
 import ChatRulesPopup from './ChatRulesPopup';
 import NotificationSystem from './NotificationSystem';
 import SearchFilter from './SearchFilter';
+import PWAInstallPrompt from './PWAInstallPrompt';
+import OfflineIndicator from './OfflineIndicator';
+import DebateAnalytics from './DebateAnalytics';
 
 const VOTE_SYMBOLS = {
   upvote: '⬆️',
@@ -53,6 +56,9 @@ const ChatRoom = () => {
   const typingTimeoutRef = useRef(null);
   const socketRef = useRef(null);
   const inputRef = useRef(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     // Generate anonymous ID when component mounts
@@ -352,8 +358,32 @@ const ChatRoom = () => {
           </div>
           <NotificationSystem socket={socket} currentUserId={anonymousId} />
           <button className="back-button" onClick={() => navigate('/topics')}>← Back to Topics</button>
+          <div className="header-controls">
+            <button 
+              className="analytics-toggle-btn"
+              onClick={() => setShowAnalytics(!showAnalytics)}
+              title="Toggle Analytics"
+            >
+              📊
+            </button>
+            <button 
+              className="rules-button" 
+              onClick={() => setShowRules(true)}
+            >
+              Rules
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Analytics Section */}
+      {showAnalytics && (
+        <DebateAnalytics 
+          messages={messages}
+          users={users}
+          currentUserId={anonymousId}
+        />
+      )}
 
       <div className="chat-main">
         <div className="users-list">
