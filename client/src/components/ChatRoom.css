@@ -922,6 +922,33 @@
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.6);
 }
 
+.gamification-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+}
+
+.gamification-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.gamification-btn:hover {
+  background: rgba(255, 193, 7, 0.4);
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.6);
+}
+
 .rules-button {
   background: #f8f9fa;
   color: #333;
@@ -952,4 +979,40 @@
 .logout-button:hover {
   background: #dc2626;
   transform: translateY(-1px);
+}
+
+.anonymous-status {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+}
+
+.user-points-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+  color: white;
+}
+
+.points-icon {
+  font-size: 16px;
+}
+
+.points-value {
+  font-weight: 600;
+  color: #FFD700;
+}
+
+.user-level {
+  font-size: 12px;
+  opacity: 0.8;
+  color: #4a90e2;
+}
+
+.NotificationSystem {
+  /* Add any specific styles for the NotificationSystem component here */
 } 

@@ -8,6 +8,7 @@ import SearchFilter from './SearchFilter';
 import DebateAnalytics from './DebateAnalytics';
 import UserProfile from './UserProfile';
 import AIModerationAssistant from './AIModerationAssistant';
+import GamificationSystem from './GamificationSystem';
 import UserService from '../services/UserService';
 
 const VOTE_SYMBOLS = {
@@ -52,6 +53,8 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showAIModeration, setShowAIModeration] = useState(false);
   const [currentMessageForModeration, setCurrentMessageForModeration] = useState('');
+  const [showGamification, setShowGamification] = useState(false);
+  const [userStats, setUserStats] = useState(null);
 
   useEffect(() => {
     // Check if user has accepted rules
@@ -388,6 +391,20 @@ const ChatRoom = ({ currentUser, onLogout }) => {
     }
   };
 
+  const handleGamification = () => {
+    setShowGamification(true);
+  };
+
+  const handleCloseGamification = () => {
+    setShowGamification(false);
+  };
+
+  const handleUpdateStats = (updatedStats) => {
+    setUserStats(updatedStats);
+    // Save stats to localStorage
+    localStorage.setItem(`debatize_stats_${currentUser.username}`, JSON.stringify(updatedStats));
+  };
+
   if (showRules) {
     return (
       <div className="chat-container">
@@ -427,6 +444,13 @@ const ChatRoom = ({ currentUser, onLogout }) => {
           <div className="anonymous-status">
             You are: <strong>{currentUser.username}</strong>
           </div>
+          {userStats && (
+            <div className="user-points-display">
+              <span className="points-icon">⭐</span>
+              <span className="points-value">{userStats.totalPoints || 0} pts</span>
+              <span className="user-level">Level {Math.floor((userStats.totalPoints || 0) / 100) + 1}</span>
+            </div>
+          )}
           <NotificationSystem socket={socket} currentUserId={currentUser.username} />
           <button className="back-button" onClick={() => navigate('/topics')}>← Back to Topics</button>
           <div className="header-controls">
@@ -444,6 +468,13 @@ const ChatRoom = ({ currentUser, onLogout }) => {
               disabled={!message.trim()}
             >
               🤖
+            </button>
+            <button 
+              className="gamification-btn"
+              onClick={handleGamification}
+              title="Gamification Center"
+            >
+              🎮
             </button>
             <button 
               className="rules-button" 
@@ -623,6 +654,17 @@ const ChatRoom = ({ currentUser, onLogout }) => {
         onModerate={handleModerationAction}
         currentUser={currentUser}
         roomContext={`${roomId}/${subtopicId}`}
+      />
+
+      {/* Gamification System */}
+      <GamificationSystem
+        isOpen={showGamification}
+        onClose={handleCloseGamification}
+        currentUser={currentUser}
+        userStats={userStats}
+        onUpdateStats={handleUpdateStats}
+        messages={messages}
+        users={users}
       />
     </div>
   );
