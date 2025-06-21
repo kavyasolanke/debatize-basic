@@ -1,0 +1,59 @@
+.offline-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  z-index: 9999;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.offline-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.offline-icon {
+  font-size: 1.1rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.offline-text {
+  text-align: center;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .offline-content {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+  
+  .offline-icon {
+    font-size: 1rem;
+  }
+} 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './NotificationSystem.css';
 
 const NotificationSystem = ({ socket, currentUserId }) => {
@@ -7,6 +7,21 @@ const NotificationSystem = ({ socket, currentUserId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [permission, setPermission] = useState('default');
   const notificationRef = useRef(null);
+
+  const addNotification = useCallback((notification) => {
+    setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Keep only last 10
+    setUnreadCount(prev => prev + 1);
+    
+    // Show browser notification if permission granted
+    if (permission === 'granted' && document.hidden) {
+      new Notification(notification.title, {
+        body: notification.message,
+        icon: '/logo1.png',
+        badge: '/logo1.png',
+        tag: 'debatize-notification'
+      });
+    }
+  }, [permission]);
 
   useEffect(() => {
     // Request notification permission on component mount
@@ -92,22 +107,7 @@ const NotificationSystem = ({ socket, currentUserId }) => {
         socket.off('userLeft');
       }
     };
-  }, [socket, currentUserId]);
-
-  const addNotification = (notification) => {
-    setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Keep only last 10
-    setUnreadCount(prev => prev + 1);
-    
-    // Show browser notification if permission granted
-    if (permission === 'granted' && document.hidden) {
-      new Notification(notification.title, {
-        body: notification.message,
-        icon: '/logo1.png',
-        badge: '/logo1.png',
-        tag: 'debatize-notification'
-      });
-    }
-  };
+  }, [socket, currentUserId, addNotification]);
 
   const markAsRead = (notificationId) => {
     setNotifications(prev => 
