@@ -7,6 +7,7 @@ import NotificationSystem from './NotificationSystem';
 import SearchFilter from './SearchFilter';
 import DebateAnalytics from './DebateAnalytics';
 import UserProfile from './UserProfile';
+import UserService from '../services/UserService';
 
 const VOTE_SYMBOLS = {
   upvote: '⬆️',
@@ -25,21 +26,10 @@ const OPENING_STATEMENTS = {
   culture: "Welcome to the Culture debate room! Discuss art, traditions, and societal norms. Share your cultural experiences and perspectives in this diverse space."
 };
 
-// Generate anonymous user ID
-const generateAnonymousId = () => {
-  const adjectives = ['Anonymous', 'Mysterious', 'Curious', 'Thoughtful', 'Wise', 'Creative', 'Bold', 'Quiet', 'Friendly', 'Serious'];
-  const nouns = ['Debater', 'Thinker', 'Observer', 'Speaker', 'Listener', 'Analyst', 'Critic', 'Advocate', 'Scholar', 'Citizen'];
-  const randomNum = Math.floor(Math.random() * 1000);
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  return `${adjective}${noun}${randomNum}`;
-};
-
-const ChatRoom = () => {
+const ChatRoom = ({ currentUser, onLogout }) => {
   const { roomId, subtopicId } = useParams();
   const navigate = useNavigate();
   const [socket, setSocket] = useState(null);
-  const [anonymousId, setAnonymousId] = useState('');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [filteredMessages, setFilteredMessages] = useState([]);
@@ -58,11 +48,6 @@ const ChatRoom = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-
-  useEffect(() => {
-    // Generate anonymous ID when component mounts
-    setAnonymousId(generateAnonymousId());
-  }, []);
 
   useEffect(() => {
     // Create socket connection
@@ -187,11 +172,11 @@ const ChatRoom = () => {
   }, [isJoined]);
 
   const handleJoin = (chosenSide) => {
-    if (socket && anonymousId) {
+    if (socket && currentUser) {
       const room = `${roomId}/${subtopicId}`;
       socket.emit('join', {
         room,
-        user: anonymousId,
+        user: currentUser.username,
         side: chosenSide
       });
       setIsJoined(true);
@@ -208,7 +193,7 @@ const ChatRoom = () => {
 
     const messageData = {
       text: message,
-      user: anonymousId,
+      user: currentUser.username,
       room: `${roomId}/${subtopicId}`,
       timestamp: new Date().toISOString()
     };
@@ -224,7 +209,7 @@ const ChatRoom = () => {
   };
 
   const handleVote = (messageId, voteType) => {
-    socket.emit('addVote', { messageId, voteType, user: anonymousId });
+    socket.emit('addVote', { messageId, voteType, user: currentUser.username });
   };
 
   const handleReply = (message) => {
@@ -244,7 +229,7 @@ const ChatRoom = () => {
 
     socket.emit('typing', {
       room: `${roomId}/${subtopicId}`,
-      user: anonymousId,
+      user: currentUser.username,
       isTyping: true
     });
 
@@ -255,7 +240,7 @@ const ChatRoom = () => {
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('typing', {
         room: `${roomId}/${subtopicId}`,
-        user: anonymousId,
+        user: currentUser.username,
         isTyping: false
       });
     }, 1000);
@@ -290,8 +275,8 @@ const ChatRoom = () => {
   };
 
   const getVoteStatus = (message) => {
-    if (!message.votes || !message.votes[anonymousId]) return 'neutral';
-    return message.votes[anonymousId];
+    if (!message.votes || !message.votes[currentUser.username]) return 'neutral';
+    return message.votes[currentUser.username];
   };
 
   const getVoteCounts = (message) => {
@@ -330,7 +315,7 @@ const ChatRoom = () => {
     // Emit profile update to server
     if (socket) {
       socket.emit('updateProfile', {
-        userId: anonymousId,
+        userId: currentUser.username,
         profileData
       });
     }
@@ -373,9 +358,9 @@ const ChatRoom = () => {
             {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
           </div>
           <div className="anonymous-status">
-            You are: <strong>{anonymousId}</strong>
+            You are: <strong>{currentUser.username}</strong>
           </div>
-          <NotificationSystem socket={socket} currentUserId={anonymousId} />
+          <NotificationSystem socket={socket} currentUserId={currentUser.username} />
           <button className="back-button" onClick={() => navigate('/topics')}>← Back to Topics</button>
           <div className="header-controls">
             <button 
@@ -391,6 +376,13 @@ const ChatRoom = () => {
             >
               Rules
             </button>
+            <button 
+              className="logout-button" 
+              onClick={onLogout}
+              title="Logout"
+            >
+              🚪
+            </button>
           </div>
         </div>
       </div>
@@ -400,7 +392,7 @@ const ChatRoom = () => {
         <DebateAnalytics 
           messages={messages}
           users={users}
-          currentUserId={anonymousId}
+          currentUserId={currentUser.username}
         />
       )}
 
@@ -409,8 +401,8 @@ const ChatRoom = () => {
           <h3>Online Users</h3>
           <ul>
             {users.map((user) => (
-              <li key={user.id} className={user.username === anonymousId ? 'current-user' : ''}>
-                {user.username} {user.username === anonymousId ? '(You)' : ''}
+              <li key={user.id} className={user.username === currentUser.username ? 'current-user' : ''}>
+                {user.username} {user.username === currentUser.username ? '(You)' : ''}
               </li>
             ))}
           </ul>
@@ -435,7 +427,7 @@ const ChatRoom = () => {
             return (
               <div 
                 key={msg.id || index} 
-                className={`message ${msg.user === anonymousId ? 'own-message' : ''} ${msg.isWarning ? 'moderator-warning' : ''}`}
+                className={`message ${msg.user === currentUser.username ? 'own-message' : ''} ${msg.isWarning ? 'moderator-warning' : ''}`}
                 onTouchStart={(e) => handleTouchStart(e, msg)}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={(e) => handleTouchEnd(e, msg)}
@@ -496,7 +488,7 @@ const ChatRoom = () => {
           })}
           {typingUsers.length > 0 && (
             <div className="typing-indicator">
-              {typingUsers.filter(user => user !== anonymousId).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+              {typingUsers.filter(user => user !== currentUser.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -509,7 +501,7 @@ const ChatRoom = () => {
           userId={selectedUserId}
           messages={messages}
           users={users}
-          currentUserId={anonymousId}
+          currentUserId={currentUser.username}
           onClose={handleCloseUserProfile}
           onUpdateProfile={handleUpdateProfile}
         />
